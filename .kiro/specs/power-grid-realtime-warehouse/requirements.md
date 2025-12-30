@@ -2,19 +2,21 @@
 
 ## Introduction
 
-本文档定义了国网实时数仓测试环境构建与验证系统的需求。该系统基于 Docker 容器技术，集成 PostgreSQL、Apache Flink、Apache Fluss、Apache Doris 和 Grafana 等组件，构建完整的实时数据仓库测试环境，支持端到端的数据流处理、分层数仓架构和可视化展示。
+本文档定义了国网实时数仓测试环境构建与验证系统的需求。该系统基于 Docker 容器技术和预配置的 Flink + Fluss Delta Join 基础镜像，集成 PostgreSQL、Apache Doris 和 Grafana 等组件，构建完整的实时数据仓库测试环境，支持端到端的数据流处理、分层数仓架构和可视化展示。
 
 ## Glossary
 
 - **System**: 国网实时数仓测试环境系统
 - **Container**: Docker 容器实例
+- **Base_Image**: xuyangzzz/delta_join_example:1.0 预配置基础镜像
 - **Data_Generator**: Python 数据生成器
 - **CDC_Connector**: Flink Change Data Capture 连接器
+- **Flink_Fluss_Cluster**: 预配置的 Flink + Fluss 集成环境
 - **ODS_Layer**: 原始数据层（Operational Data Store）
 - **DWD_Layer**: 明细数据层（Data Warehouse Detail）
 - **DWS_Layer**: 汇总数据层（Data Warehouse Summary）
 - **ADS_Layer**: 应用数据层（Application Data Service）
-- **Delta_Join**: Flink Delta Join 算子
+- **Delta_Join**: Flink Delta Join 算子（预配置在基础镜像中）
 - **SSH_Service**: 容器内 SSH 服务
 - **Proxy_Service**: HTTP/HTTPS 代理服务
 - **Health_Check**: 系统健康检查机制
@@ -72,24 +74,24 @@
 
 ### Requirement 5
 
-**User Story:** 作为流处理开发者，我希望系统能够提供 Flink 和 Fluss 集成环境，以便实现基于 Delta Join 的实时数据处理。
+**User Story:** 作为流处理开发者，我希望系统能够提供预配置的 Flink + Fluss 集成环境，以便快速实现基于 Delta Join 的实时数据处理。
 
 #### Acceptance Criteria
 
-1. THE System SHALL 集成 Apache Flink 2.2.0 并自动启动 JobManager 和 TaskManager
-2. THE System SHALL 集成 Apache Fluss 0.8 并配置流存储服务
+1. THE System SHALL 基于 xuyangzzz/delta_join_example:1.0 预配置镜像构建
+2. THE Flink_Fluss_Cluster SHALL 自动启动并提供 Delta Join 功能
 3. THE System SHALL 提供 Flink CDC 连接器支持 PostgreSQL 数据捕获
 4. THE Delta_Join SHALL 实现流表与维表的高效关联查询
 5. THE System SHALL 提供 Flink Web UI 用于作业监控和管理
 
 ### Requirement 6
 
-**User Story:** 作为数据架构师，我希望系统能够实现分层数仓架构，以便构建标准的实时数据仓库。
+**User Story:** 作为数据架构师，我希望系统能够基于预配置的流处理环境实现分层数仓架构，以便构建标准的实时数据仓库。
 
 #### Acceptance Criteria
 
-1. THE ODS_Layer SHALL 直接从 PostgreSQL CDC 捕获原始数据
-2. THE DWD_Layer SHALL 实现数据清洗、标准化和维度关联
+1. THE ODS_Layer SHALL 直接从 PostgreSQL CDC 捕获原始数据并存储到 Fluss
+2. THE DWD_Layer SHALL 基于 Delta Join 实现数据清洗、标准化和维度关联
 3. THE DWS_Layer SHALL 提供时间窗口聚合和业务维度汇总
 4. THE ADS_Layer SHALL 生成应用层指标和告警分析
 5. THE System SHALL 确保各层数据的实时流转和一致性
@@ -124,7 +126,7 @@
 
 #### Acceptance Criteria
 
-1. THE System SHALL 使用 Supervisor 统一管理所有服务进程
+1. THE System SHALL 使用 Supervisor 统一管理所有服务进程（包括 Flink_Fluss_Cluster）
 2. THE System SHALL 为每个服务组件提供独立的日志文件
 3. THE Health_Check SHALL 定期检查各服务状态并记录结果
 4. THE System SHALL 提供实时监控脚本显示系统运行状态
@@ -132,11 +134,11 @@
 
 ### Requirement 10
 
-**User Story:** 作为 DevOps 工程师，我希望系统能够支持镜像构建、测试和发布流程，以便实现标准化的部署和交付。
+**User Story:** 作为 DevOps 工程师，我希望系统能够基于预配置基础镜像支持快速构建、测试和发布流程，以便实现标准化的部署和交付。
 
 #### Acceptance Criteria
 
-1. THE System SHALL 提供完整的 Dockerfile 构建脚本
+1. THE System SHALL 基于 xuyangzzz/delta_join_example:1.0 提供完整的 Dockerfile 构建脚本
 2. THE System SHALL 支持自动化的镜像构建和测试流程
 3. THE System SHALL 生成可分发的镜像包和部署脚本
 4. THE System SHALL 提供版本管理和发布说明文档

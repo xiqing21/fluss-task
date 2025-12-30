@@ -2,20 +2,20 @@
 
 ## Overview
 
-本实施计划将国网实时数仓测试环境的设计转化为具体的开发任务。实施采用增量开发方式，从基础环境搭建开始，逐步构建完整的实时数据处理链路。
+本实施计划将国网实时数仓测试环境的设计转化为具体的开发任务。实施采用增量开发方式，基于预配置的 Flink + Fluss Delta Join 基础镜像，从基础环境搭建开始，逐步构建完整的实时数据处理链路。
 
 实施策略：
-1. 首先构建 Docker 容器基础环境和服务管理
+1. 首先基于预配置基础镜像构建 Docker 容器环境和服务管理
 2. 然后实现数据源和基础数据流
-3. 接着构建分层数仓和流处理逻辑
+3. 接着构建分层数仓和流处理逻辑（利用预配置的 Delta Join 功能）
 4. 最后完善监控、测试和部署流程
 
 ## Tasks
 
-- [-] 1. 构建 Docker 容器基础环境
-  - 创建 Dockerfile 和基础配置文件
+- [x] 1. 构建基于预配置镜像的 Docker 容器环境
+  - 基于 xuyangzzz/delta_join_example:1.0 创建 Dockerfile
   - 配置 SSH 服务和代理设置
-  - 集成所有必需的软件组件
+  - 集成 PostgreSQL、Doris、Grafana 等额外组件
   - _Requirements: 1.1, 1.2, 2.1, 2.2, 2.3, 3.1, 3.2, 3.3, 3.4_
 
 - [x] 1.1 编写容器构建和部署测试
@@ -23,7 +23,7 @@
   - **Validates: Requirements 1.2, 1.4, 9.1**
 
 - [ ] 2. 实现服务进程管理系统
-  - 配置 Supervisor 进程管理
+  - 配置 Supervisor 进程管理（包括 Flink_Fluss_Cluster）
   - 创建服务启动和监控脚本
   - 实现健康检查机制
   - _Requirements: 1.4, 9.1, 9.2, 9.3_
@@ -48,27 +48,27 @@
   - **Property 4: Data Generation Continuity**
   - **Validates: Requirements 4.3, 4.4**
 
-- [ ] 4. 集成 Apache Flink 流计算引擎
-  - 安装和配置 Flink 2.2.0
-  - 配置 Flink CDC 连接器
-  - 创建基础流处理作业
-  - 配置 Flink Web UI
+- [ ] 4. 配置预配置的 Flink + Fluss 集成环境
+  - 验证基础镜像中的 Flink 2.2.0 和 Fluss 0.8 配置
+  - 配置 Flink CDC 连接器连接 PostgreSQL
+  - 测试 Delta Join 功能和流表操作
+  - 配置 Flink Web UI 访问
   - _Requirements: 5.1, 5.3, 5.5_
 
-- [ ]* 4.1 编写 Flink 集成测试
-  - 验证 JobManager 和 TaskManager 启动
-  - 测试 CDC 连接器功能
+- [ ]* 4.1 编写 Flink + Fluss 集成测试
+  - 验证预配置集群启动和连接
+  - 测试 CDC 连接器和 Delta Join 功能
   - **Validates: Requirements 5.1, 5.3, 5.5**
 
-- [ ] 5. 集成 Apache Fluss 流存储引擎
-  - 安装和配置 Fluss 0.8
-  - 创建 Fluss Catalog 和数据库
-  - 实现 ODS 层流表定义
+- [ ] 5. 验证和扩展 Fluss 流存储配置
+  - 验证基础镜像中的 Fluss 0.8 配置
+  - 扩展 Fluss Catalog 和数据库配置
+  - 实现国网业务 ODS 层流表定义
   - _Requirements: 5.2, 6.1_
 
-- [ ]* 5.1 编写 Fluss 集成测试
+- [ ]* 5.1 编写 Fluss 扩展配置测试
   - 验证 Fluss 服务启动和连接
-  - 测试流表创建和数据写入
+  - 测试国网业务流表创建和数据写入
   - **Validates: Requirements 5.2, 6.1**
 
 - [ ] 6. 实现数仓分层架构
@@ -78,7 +78,7 @@
   - _Requirements: 6.1_
 
 - [ ] 6.2 实现 DWD 层数据处理
-  - 实现数据清洗和标准化逻辑
+  - 基于预配置的 Delta Join 实现数据清洗和标准化逻辑
   - 使用 Delta Join 进行维度关联
   - 创建明细数据宽表
   - _Requirements: 6.2, 5.4_
@@ -119,7 +119,7 @@
   - **Validates: Requirements 7.5**
 
 - [ ] 9. 检查点 - 验证核心数据流
-  - 确保从 PostgreSQL 到 Doris 的完整数据流正常工作
+  - 确保从 PostgreSQL 经过 Flink + Fluss 集群到 Doris 的完整数据流正常工作
   - 验证所有服务组件正常运行
   - 如有问题请询问用户
 
@@ -160,8 +160,8 @@
   - **Validates: Requirements 8.2, 8.3**
 
 - [ ] 12. 实现构建和部署自动化
-- [ ] 12.1 创建镜像构建脚本
-  - 实现完整的 Dockerfile 构建脚本
+- [ ] 12.1 创建基于预配置镜像的构建脚本
+  - 基于 xuyangzzz/delta_join_example:1.0 实现完整的 Dockerfile 构建脚本
   - 创建自动化构建和测试流程
   - _Requirements: 10.1, 10.2_
 
@@ -192,3 +192,5 @@
 - 检查点任务确保增量验证和用户反馈
 - 属性测试验证通用的正确性属性
 - 单元测试验证具体的功能点和边界条件
+- 基于预配置的 xuyangzzz/delta_join_example:1.0 镜像，简化了 Flink 和 Fluss 的部署配置
+- Delta Join 功能已预配置，重点关注国网业务数据流的实现和验证
