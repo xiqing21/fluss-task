@@ -1,0 +1,130 @@
+# 国网实时数仓测试环境 Docker 镜像
+FROM ubuntu:20.04
+
+# 设置环境变量
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Shanghai
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV FLINK_HOME=/opt/flink
+ENV FLUSS_HOME=/opt/fluss
+ENV DORIS_HOME=/opt/doris
+ENV PATH=$PATH:$JAVA_HOME/bin:$FLINK_HOME/bin:$FLUSS_HOME/bin:$DORIS_HOME/bin
+
+# 代理配置环境变量（可在运行时覆盖）
+ENV HTTP_PROXY="http://host.docker.internal:7890"
+ENV HTTPS_PROXY="https://host.docker.internal:7890"
+ENV NO_PROXY="localhost,127.0.0.1"
+
+# 创建工作目录
+WORKDIR /opt
+
+# 更新系统并安装基础软件包
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    vim \
+    nano \
+    htop \
+    net-tools \
+    telnet \
+    openssh-server \
+    supervisor \
+    python3 \
+    python3-pip \
+    openjdk-11-jdk \
+    postgresql-13 \
+    postgresql-client-13 \
+    postgresql-contrib-13 \
+    && rm -rf /var/lib/apt/lists/*
+
+# 配置 SSH 服务
+RUN mkdir /var/run/sshd \
+    && echo 'root:root123' | chpasswd \
+    && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
+    && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
+    && mkdir -p /root/.ssh \
+    && chmod 700 /root/.ssh
+
+# 创建 SSH 密钥对
+RUN ssh-keygen -t rsa -b 4096 -f /root/.ssh/id_rsa -N "" \
+    && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+    && chmod 600 /root/.ssh/authorized_keys
+
+# 配置 PostgreSQL
+RUN service postgresql start \
+    && sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';" \
+    && sudo -u postgres createdb power_grid \
+    && service postgresql stop
+
+# 配置 PostgreSQL 允许远程连接
+RUN echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/13/main/pg_hba.conf \
+    && echo "listen_addresses = '*'" >> /etc/postgresql/13/main/postgresql.conf \
+    && echo "wal_level = logical" >> /etc/postgresql/13/main/postgresql.conf \
+    && echo "max_wal_senders = 10" >> /etc/postgresql/13/main/postgresql.conf \
+    && echo "max_replication_slots = 10" >> /etc/postgresql/13/main/postgresql.conf
+
+# 下载并安装 Apache Flink 2.2.0
+RUN wget -q https://archive.apache.org/dist/flink/flink-2.2.0/flink-2.2.0-bin-scala_2.12.tgz \
+    && tar -xzf flink-2.2.0-bin-scala_2.12.tgz \
+    && mv flink-2.2.0 flink \
+    && rm flink-2.2.0-bin-scala_2.12.tgz
+
+# 下载并安装 Apache Fluss 0.8
+RUN wget -q https://github.com/apache/fluss/releases/download/v0.8.0/fluss-0.8.0-bin.tgz \
+    && tar -xzf fluss-0.8.0-bin.tgz \
+    && mv fluss-0.8.0 fluss \
+    && rm fluss-0.8.0-bin.tgz
+
+# 下载并安装 Apache Doris 1.2.7
+RUN wget -q https://archive.apache.org/dist/doris/1.2/1.2.7/apache-doris-1.2.7-bin-x64.tar.gz \
+    && tar -xzf apache-doris-1.2.7-bin-x64.tar.gz \
+    && mv apache-doris-1.2.7-bin-x64 doris \
+    && rm apache-doris-1.2.7-bin-x64.tar.gz
+
+# 安装 Grafana
+RUN wget -q -O - https://packages.grafana.com/gpg.key | apt-key add - \
+    && echo "deb https://packages.grafana.com/oss/deb stable main" | tee -a /etc/apt/sources.list.d/grafana.list \
+    && apt-get update \
+    && apt-get install -y grafana \
+    && rm -rf /var/lib/apt/lists/*
+
+# 安装 Python 依赖
+RUN pip3 install --no-cache-dir \
+    psycopg2-binary \
+    faker \
+    requests \
+    pyyaml \
+    schedule
+
+# 创建配置目录
+RUN mkdir -p /opt/config /opt/scripts /opt/logs
+
+# 复制配置文件
+COPY config/ /opt/config/
+COPY scripts/ /opt/scripts/
+
+# 设置脚本执行权限
+RUN chmod +x /opt/scripts/*.sh /opt/scripts/*.py
+
+# 配置 Supervisor
+COPY config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# 创建数据目录
+RUN mkdir -p /opt/data/postgresql /opt/data/flink /opt/data/fluss /opt/data/doris /opt/data/grafana
+
+# 设置权限
+RUN chown -R postgres:postgres /opt/data/postgresql \
+    && chown -R grafana:grafana /opt/data/grafana
+
+# 暴露端口
+# SSH: 22, PostgreSQL: 5432, Flink Web: 8081, Flink REST: 8082
+# Fluss: 8084, Fluss Bootstrap: 9123, Grafana: 3000
+# Doris FE: 8030, Doris MySQL: 9030, Doris BE: 8040
+EXPOSE 22 5432 8081 8082 8084 9123 3000 8030 9030 8040
+
+# 设置启动脚本
+COPY scripts/entrypoint.sh /opt/scripts/entrypoint.sh
+RUN chmod +x /opt/scripts/entrypoint.sh
+
+# 启动命令
+CMD ["/opt/scripts/entrypoint.sh"]

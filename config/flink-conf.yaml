@@ -1,0 +1,41 @@
+# Flink 配置文件
+
+# JobManager 配置
+jobmanager.rpc.address: localhost
+jobmanager.rpc.port: 6123
+jobmanager.memory.process.size: 1600m
+
+# TaskManager 配置
+taskmanager.memory.process.size: 1728m
+taskmanager.numberOfTaskSlots: 4
+parallelism.default: 2
+
+# Web UI 配置
+rest.port: 8081
+rest.address: 0.0.0.0
+
+# 检查点配置
+state.backend: filesystem
+state.checkpoints.dir: file:///opt/data/flink/checkpoints
+state.savepoints.dir: file:///opt/data/flink/savepoints
+
+# 高可用配置
+high-availability: none
+
+# 网络配置
+taskmanager.network.memory.fraction: 0.1
+taskmanager.network.memory.min: 64mb
+taskmanager.network.memory.max: 1gb
+
+# 日志配置
+env.log.dir: /opt/logs
+
+# 类加载器配置
+classloader.resolve-order: child-first
+
+# 表环境配置
+table.exec.resource.default-parallelism: 2
+table.optimizer.join-reorder-enabled: true
+
+# CDC 相关配置
+pipeline.jars: file:///opt/flink/lib/flink-connector-postgres-cdc-2.4.2.jar;file:///opt/flink/lib/flink-connector-fluss-0.8.0.jar

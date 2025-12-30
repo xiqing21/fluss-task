@@ -1,0 +1,94 @@
+# 国网实时数仓测试环境 Docker Compose 配置
+version: '3.8'
+
+services:
+  power-grid-warehouse:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: power-grid-realtime-warehouse
+    hostname: power-grid-warehouse
+    
+    # 端口映射
+    ports:
+      - "2222:22"        # SSH
+      - "5432:5432"      # PostgreSQL
+      - "8081:8081"      # Flink Web UI
+      - "8082:8082"      # Flink REST API
+      - "8084:8084"      # Fluss Web UI
+      - "9123:9123"      # Fluss Bootstrap Server
+      - "3000:3000"      # Grafana
+      - "8030:8030"      # Doris FE
+      - "9030:9030"      # Doris MySQL Protocol
+      - "8040:8040"      # Doris BE
+    
+    # 环境变量
+    environment:
+      - TZ=Asia/Shanghai
+      - LANG=zh_CN.UTF-8
+      # 代理配置（可选）
+      - HTTP_PROXY=${HTTP_PROXY:-}
+      - HTTPS_PROXY=${HTTPS_PROXY:-}
+      - NO_PROXY=localhost,127.0.0.1
+    
+    # 数据卷挂载
+    volumes:
+      - power_grid_data:/opt/data
+      - power_grid_logs:/opt/logs
+      - power_grid_config:/opt/config
+    
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4.0'
+        reservations:
+          memory: 4G
+          cpus: '2.0'
+    
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "python3", "/opt/scripts/health_check.py", "--quick"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    
+    # 重启策略
+    restart: unless-stopped
+    
+    # 网络配置
+    networks:
+      - power-grid-network
+
+# 数据卷定义
+volumes:
+  power_grid_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data
+  
+  power_grid_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./logs
+  
+  power_grid_config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./config
+
+# 网络定义
+networks:
+  power-grid-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

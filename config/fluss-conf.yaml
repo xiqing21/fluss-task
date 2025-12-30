@@ -1,0 +1,46 @@
+# Fluss 配置文件
+
+# 服务器配置
+bootstrap.servers: localhost:9123
+server.host: 0.0.0.0
+server.port: 9123
+
+# 数据目录
+data.dir: /opt/data/fluss
+
+# 日志配置
+log.dir: /opt/logs
+log.level: INFO
+
+# 内存配置
+memory.size: 1g
+
+# 网络配置
+network.threads: 3
+network.receive.buffer.bytes: 65536
+network.send.buffer.bytes: 131072
+
+# 存储配置
+log.segment.bytes: 1073741824
+log.retention.hours: 168
+log.retention.bytes: 1073741824
+
+# 复制配置
+default.replication.factor: 1
+min.insync.replicas: 1
+
+# 压缩配置
+compression.type: lz4
+
+# 事务配置
+transaction.state.log.replication.factor: 1
+transaction.state.log.min.isr: 1
+
+# 客户端配置
+client.id: fluss-server
+request.timeout.ms: 30000
+retry.backoff.ms: 100
+
+# Web UI 配置
+web.port: 8084
+web.host: 0.0.0.0
