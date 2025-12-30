@@ -40,11 +40,11 @@
   - 实现数据生成器脚本
   - _Requirements: 4.1, 4.2, 4.3, 4.5_
 
-- [ ]* 3.1 编写数据源配置验证测试
+- [x] 3.1 编写数据源配置验证测试
   - **Property 3: Configuration Correctness**
   - **Validates: Requirements 4.1, 4.2, 4.5**
 
-- [ ]* 3.2 编写数据生成连续性测试
+- [x] 3.2 编写数据生成连续性测试
   - **Property 4: Data Generation Continuity**
   - **Validates: Requirements 4.3, 4.4**
 
