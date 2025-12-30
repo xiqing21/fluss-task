@@ -20,7 +20,7 @@
   "recovery_strategies": {
     "postgresql": {
       "pre_recovery_commands": [
-        "pg_ctl status -D /var/lib/postgresql/12/main"
+        "pg_ctl status -D /var/lib/postgresql/13/main"
       ],
       "post_recovery_commands": [
         "sleep 10",
