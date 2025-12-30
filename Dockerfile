@@ -40,6 +40,7 @@ RUN apt-get update && \
     postgresql \
     postgresql-client \
     postgresql-contrib \
+    sudo \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -63,11 +64,12 @@ RUN service postgresql start \
     && service postgresql stop
 
 # 配置 PostgreSQL 允许远程连接
-RUN echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/*/main/pg_hba.conf \
-    && echo "listen_addresses = '*'" >> /etc/postgresql/*/main/postgresql.conf \
-    && echo "wal_level = logical" >> /etc/postgresql/*/main/postgresql.conf \
-    && echo "max_wal_senders = 10" >> /etc/postgresql/*/main/postgresql.conf \
-    && echo "max_replication_slots = 10" >> /etc/postgresql/*/main/postgresql.conf
+RUN PG_VERSION=$(ls /etc/postgresql/) && \
+    echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/$PG_VERSION/main/pg_hba.conf && \
+    echo "listen_addresses = '*'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf && \
+    echo "wal_level = logical" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf && \
+    echo "max_wal_senders = 10" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf && \
+    echo "max_replication_slots = 10" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
 
 # 下载并安装 Apache Doris 1.2.7
 RUN wget -q https://archive.apache.org/dist/doris/1.2/1.2.7/apache-doris-1.2.7-bin-x64.tar.gz \

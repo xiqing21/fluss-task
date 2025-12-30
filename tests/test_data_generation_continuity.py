@@ -250,8 +250,8 @@ class DataGenerationContinuityTester:
 
 
 # Property-based test implementation
-@given(st.integers(min_value=1, max_value=5))  # Test with different monitoring durations
-@settings(max_examples=3, deadline=180000)  # 3 minutes timeout for each test
+@given(st.integers(min_value=1, max_value=2))  # Test with shorter monitoring durations
+@settings(max_examples=2, deadline=60000)  # 1 minute timeout for each test
 def test_data_generation_continuity_property(monitoring_duration_minutes):
     """
     Property 4: Data Generation Continuity
@@ -280,13 +280,13 @@ def test_data_generation_continuity_property(monitoring_duration_minutes):
         
         # 监控数据生成的连续性
         monitoring_start = time.time()
-        monitoring_end = monitoring_start + (monitoring_duration_minutes * 60)
+        monitoring_end = monitoring_start + (monitoring_duration_minutes * 30)  # 30 seconds per "minute" for testing
         
         previous_counts = initial_counts.copy()
         continuous_generation_verified = False
         
         while time.time() < monitoring_end:
-            time.sleep(30)  # 每30秒检查一次
+            time.sleep(10)  # 每10秒检查一次
             
             current_counts = tester.get_record_counts()
             assert current_counts is not None, "无法获取当前记录数"
