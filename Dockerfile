@@ -15,11 +15,17 @@ ENV HTTP_PROXY="http://host.docker.internal:7890"
 ENV HTTPS_PROXY="https://host.docker.internal:7890"
 ENV NO_PROXY="localhost,127.0.0.1"
 
+# 配置 apt 使用代理
+RUN echo 'Acquire::http::Proxy "http://host.docker.internal:7890";' > /etc/apt/apt.conf.d/01proxy && \
+    echo 'Acquire::https::Proxy "https://host.docker.internal:7890";' >> /etc/apt/apt.conf.d/01proxy
+
 # 创建工作目录
 WORKDIR /opt
 
-# 安装额外的系统包和 PostgreSQL 13
-RUN apt-get update && apt-get install -y \
+# 安装额外的系统包和 PostgreSQL
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
     wget \
     curl \
     vim \
@@ -31,10 +37,11 @@ RUN apt-get update && apt-get install -y \
     supervisor \
     python3 \
     python3-pip \
-    postgresql-13 \
-    postgresql-client-13 \
-    postgresql-contrib-13 \
-    && rm -rf /var/lib/apt/lists/*
+    postgresql \
+    postgresql-client \
+    postgresql-contrib \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 # 配置 SSH 服务
 RUN mkdir /var/run/sshd \
@@ -56,11 +63,11 @@ RUN service postgresql start \
     && service postgresql stop
 
 # 配置 PostgreSQL 允许远程连接
-RUN echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/13/main/pg_hba.conf \
-    && echo "listen_addresses = '*'" >> /etc/postgresql/13/main/postgresql.conf \
-    && echo "wal_level = logical" >> /etc/postgresql/13/main/postgresql.conf \
-    && echo "max_wal_senders = 10" >> /etc/postgresql/13/main/postgresql.conf \
-    && echo "max_replication_slots = 10" >> /etc/postgresql/13/main/postgresql.conf
+RUN echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/*/main/pg_hba.conf \
+    && echo "listen_addresses = '*'" >> /etc/postgresql/*/main/postgresql.conf \
+    && echo "wal_level = logical" >> /etc/postgresql/*/main/postgresql.conf \
+    && echo "max_wal_senders = 10" >> /etc/postgresql/*/main/postgresql.conf \
+    && echo "max_replication_slots = 10" >> /etc/postgresql/*/main/postgresql.conf
 
 # 下载并安装 Apache Doris 1.2.7
 RUN wget -q https://archive.apache.org/dist/doris/1.2/1.2.7/apache-doris-1.2.7-bin-x64.tar.gz \

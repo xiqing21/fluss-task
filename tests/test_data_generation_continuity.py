@@ -389,13 +389,19 @@ def test_data_generation_continuity_edge_cases():
 if __name__ == "__main__":
     # 运行单元测试
     print("=== 数据生成连续性单元测试 ===")
-    test_data_generation_continuity_unit()
+    try:
+        test_data_generation_continuity_unit()
+    except SystemExit:
+        print("PostgreSQL 服务未运行，跳过真实环境测试")
     
     print("\n=== 数据生成连续性边界条件测试 ===")
-    test_data_generation_continuity_edge_cases()
+    try:
+        test_data_generation_continuity_edge_cases()
+    except SystemExit:
+        print("PostgreSQL 服务未运行，跳过真实环境测试")
     
     print("\n=== 数据生成连续性属性测试 ===")
-    # 运行属性测试（简化版本，用于手动测试）
-    test_data_generation_continuity_property(2)  # 2分钟监控
+    print("属性测试需要通过 pytest 运行: pytest tests/test_data_generation_continuity.py::test_data_generation_continuity_property")
     
-    print("\n🎉 所有数据生成连续性测试通过！")
+    print("\n💡 提示：如果 PostgreSQL 服务未运行，请使用 Mock 版本测试：")
+    print("python tests/test_data_generation_continuity_mock.py")
