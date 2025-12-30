@@ -29,9 +29,7 @@ class ServiceManagementTester:
         self.required_services = {
             'sshd': {'port': 22, 'type': 'tcp'},
             'postgresql': {'port': 5432, 'type': 'database'},
-            'flink-jobmanager': {'port': 8081, 'type': 'http'},
-            'flink-taskmanager': {'port': 8082, 'type': 'tcp'},
-            'fluss-server': {'port': 9123, 'type': 'tcp'},
+            'flink-fluss-cluster': {'port': 8081, 'type': 'http'},  # Flink Web UI
             'doris-fe': {'port': 8030, 'type': 'http'},
             'doris-be': {'port': 8040, 'type': 'http'},
             'grafana': {'port': 3000, 'type': 'http'},

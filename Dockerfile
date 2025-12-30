@@ -1,14 +1,14 @@
 # 国网实时数仓测试环境 Docker 镜像
-FROM ubuntu:20.04
+# 基于预配置的 Flink + Fluss Delta Join 示例镜像
+FROM xuyangzzz/delta_join_example:1.0
 
-# 设置环境变量
+# 设置环境变量（基于基础镜像的配置）
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Shanghai
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-ENV FLINK_HOME=/opt/flink
-ENV FLUSS_HOME=/opt/fluss
+# 基础镜像中已经配置了 JAVA_HOME, FLINK_HOME, FLUSS_HOME
+# 添加额外的环境变量
 ENV DORIS_HOME=/opt/doris
-ENV PATH=$PATH:$JAVA_HOME/bin:$FLINK_HOME/bin:$FLUSS_HOME/bin:$DORIS_HOME/bin
+ENV PATH=$PATH:$DORIS_HOME/bin
 
 # 代理配置环境变量（可在运行时覆盖）
 ENV HTTP_PROXY="http://host.docker.internal:7890"
@@ -18,7 +18,7 @@ ENV NO_PROXY="localhost,127.0.0.1"
 # 创建工作目录
 WORKDIR /opt
 
-# 更新系统并安装基础软件包
+# 安装额外的系统包和 PostgreSQL
 RUN apt-get update && apt-get install -y \
     wget \
     curl \
@@ -31,10 +31,9 @@ RUN apt-get update && apt-get install -y \
     supervisor \
     python3 \
     python3-pip \
-    openjdk-11-jdk \
-    postgresql-13 \
-    postgresql-client-13 \
-    postgresql-contrib-13 \
+    postgresql \
+    postgresql-client \
+    postgresql-contrib \
     && rm -rf /var/lib/apt/lists/*
 
 # 配置 SSH 服务
@@ -57,23 +56,11 @@ RUN service postgresql start \
     && service postgresql stop
 
 # 配置 PostgreSQL 允许远程连接
-RUN echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/13/main/pg_hba.conf \
-    && echo "listen_addresses = '*'" >> /etc/postgresql/13/main/postgresql.conf \
-    && echo "wal_level = logical" >> /etc/postgresql/13/main/postgresql.conf \
-    && echo "max_wal_senders = 10" >> /etc/postgresql/13/main/postgresql.conf \
-    && echo "max_replication_slots = 10" >> /etc/postgresql/13/main/postgresql.conf
-
-# 下载并安装 Apache Flink 2.2.0
-RUN wget -q https://archive.apache.org/dist/flink/flink-2.2.0/flink-2.2.0-bin-scala_2.12.tgz \
-    && tar -xzf flink-2.2.0-bin-scala_2.12.tgz \
-    && mv flink-2.2.0 flink \
-    && rm flink-2.2.0-bin-scala_2.12.tgz
-
-# 下载并安装 Apache Fluss 0.8
-RUN wget -q https://github.com/apache/fluss/releases/download/v0.8.0/fluss-0.8.0-bin.tgz \
-    && tar -xzf fluss-0.8.0-bin.tgz \
-    && mv fluss-0.8.0 fluss \
-    && rm fluss-0.8.0-bin.tgz
+RUN echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/12/main/pg_hba.conf \
+    && echo "listen_addresses = '*'" >> /etc/postgresql/12/main/postgresql.conf \
+    && echo "wal_level = logical" >> /etc/postgresql/12/main/postgresql.conf \
+    && echo "max_wal_senders = 10" >> /etc/postgresql/12/main/postgresql.conf \
+    && echo "max_replication_slots = 10" >> /etc/postgresql/12/main/postgresql.conf
 
 # 下载并安装 Apache Doris 1.2.7
 RUN wget -q https://archive.apache.org/dist/doris/1.2/1.2.7/apache-doris-1.2.7-bin-x64.tar.gz \

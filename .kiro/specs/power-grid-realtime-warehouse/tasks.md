@@ -18,7 +18,7 @@
   - 集成所有必需的软件组件
   - _Requirements: 1.1, 1.2, 2.1, 2.2, 2.3, 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 1.1 编写容器构建和部署测试
+- [x] 1.1 编写容器构建和部署测试
   - **Property 1: Service Management Consistency**
   - **Validates: Requirements 1.2, 1.4, 9.1**
 

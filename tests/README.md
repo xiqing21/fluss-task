@@ -57,9 +57,7 @@ The tests validate the following services:
 |---------|------|------|-------------|
 | sshd | 22 | TCP | SSH access service |
 | postgresql | 5432 | Database | PostgreSQL database |
-| flink-jobmanager | 8081 | HTTP | Flink JobManager web UI |
-| flink-taskmanager | 8082 | TCP | Flink TaskManager |
-| fluss-server | 9123 | TCP | Fluss bootstrap server |
+| flink-fluss-cluster | 8081 | HTTP | Flink Web UI (includes Fluss) |
 | doris-fe | 8030 | HTTP | Doris Frontend |
 | doris-be | 8040 | HTTP | Doris Backend |
 | grafana | 3000 | HTTP | Grafana web UI |

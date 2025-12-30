@@ -27,8 +27,7 @@ graph TB
         
         subgraph "Stream Processing Layer"
             CDC[Flink CDC<br/>变更数据捕获]
-            FLINK[Apache Flink 2.2<br/>流计算引擎]
-            FLUSS[Apache Fluss 0.8<br/>流存储引擎]
+            FLINK_FLUSS[Flink + Fluss Cluster<br/>Delta Join 预配置环境]
         end
         
         subgraph "Data Warehouse Layers"
@@ -58,9 +57,8 @@ graph TB
     
     DG --> PG
     PG --> CDC
-    CDC --> FLINK
-    FLINK --> FLUSS
-    FLUSS --> ODS
+    CDC --> FLINK_FLUSS
+    FLINK_FLUSS --> ODS
     ODS --> DWD
     DWD --> DWS
     DWS --> ADS
@@ -70,8 +68,7 @@ graph TB
     USER --> SSH
     USER --> GRAFANA
     PROXY --> NETWORK
-    SUPERVISOR --> FLINK
-    SUPERVISOR --> FLUSS
+    SUPERVISOR --> FLINK_FLUSS
     SUPERVISOR --> PG
     SUPERVISOR --> DORIS
     SUPERVISOR --> GRAFANA
@@ -135,30 +132,26 @@ graph LR
   - 端口: 5432
 - **表结构**: 设备信息、电表读数、告警信息、用户信息等
 
-#### 2. Apache Flink 流计算引擎
-- **版本**: Apache Flink 2.2.0
-- **功能**: 流数据处理，Delta Join 算子
+#### 2. Flink + Fluss 集成环境
+- **基础镜像**: xuyangzzz/delta_join_example:1.0
+- **Flink 版本**: Apache Flink 2.2.0
+- **Fluss 版本**: Apache Fluss 0.8
+- **功能**: 预配置的 Delta Join 环境，流数据处理
 - **组件**:
   - JobManager: 作业调度和管理
   - TaskManager: 任务执行
+  - Fluss Server: 流表存储
   - Web UI: 8081 端口
-  - REST API: 8082 端口
+- **启动脚本**: start-flink-fluss.sh（来自基础镜像）
 
-#### 3. Apache Fluss 流存储
-- **版本**: Apache Fluss 0.8
-- **功能**: 流表存储，支持快照查询
-- **端口**: 
-  - Bootstrap Server: 9123
-  - Web UI: 8084
-
-#### 4. Apache Doris 分析数据库
+#### 3. Apache Doris 分析数据库
 - **版本**: Apache Doris 1.2.7
 - **组件**:
   - Frontend (FE): 查询解析和调度，端口 8030/9030
   - Backend (BE): 数据存储和计算，端口 8040
 - **功能**: OLAP 查询，实时数据分析
 
-#### 5. Grafana 可视化平台
+#### 4. Grafana 可视化平台
 - **功能**: 数据可视化，监控仪表板
 - **端口**: 3000
 - **认证**: admin/admin

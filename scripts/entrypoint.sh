@@ -58,9 +58,9 @@ cp /opt/config/doris-be.conf /opt/doris/be/conf/be.conf
 cp /opt/config/grafana.ini /etc/grafana/grafana.ini
 
 # 初始化 PostgreSQL 数据目录（如果不存在）
-if [ ! -d "/var/lib/postgresql/13/main" ]; then
+if [ ! -d "/var/lib/postgresql/12/main" ]; then
     echo "初始化 PostgreSQL 数据目录..."
-    sudo -u postgres /usr/lib/postgresql/13/bin/initdb -D /var/lib/postgresql/13/main
+    sudo -u postgres /usr/lib/postgresql/12/bin/initdb -D /var/lib/postgresql/12/main
 fi
 
 # 启动 PostgreSQL 并创建数据库结构
@@ -84,17 +84,16 @@ sleep 2
 echo "=== 系统信息 ==="
 echo "Java 版本: $(java -version 2>&1 | head -n 1)"
 echo "Python 版本: $(python3 --version)"
-echo "PostgreSQL 版本: $(sudo -u postgres /usr/lib/postgresql/13/bin/postgres --version)"
-echo "Flink 版本: $(cat /opt/flink/VERSION 2>/dev/null || echo 'Unknown')"
+echo "PostgreSQL 版本: $(sudo -u postgres /usr/lib/postgresql/12/bin/postgres --version)"
+echo "Flink 版本: 2.2.0 (预配置在基础镜像中)"
+echo "Fluss 版本: 0.8 (预配置在基础镜像中)"
 
 # 显示网络端口信息
 echo "=== 服务端口信息 ==="
 echo "SSH: 22"
 echo "PostgreSQL: 5432"
 echo "Flink Web UI: 8081"
-echo "Flink REST API: 8082"
-echo "Fluss Web UI: 8084"
-echo "Fluss Bootstrap: 9123"
+echo "Fluss Web UI: 8084 (如果可用)"
 echo "Grafana: 3000"
 echo "Doris FE: 8030"
 echo "Doris MySQL: 9030"
