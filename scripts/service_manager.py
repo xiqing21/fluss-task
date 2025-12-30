@@ -74,11 +74,19 @@ class ServiceManager:
         
     def setup_logging(self, log_level):
         """设置日志配置"""
+        # 创建日志目录
+        try:
+            log_dir = '/opt/logs'
+            os.makedirs(log_dir, exist_ok=True)
+        except (OSError, PermissionError):
+            log_dir = 'logs'
+            os.makedirs(log_dir, exist_ok=True)
+        
         logging.basicConfig(
             level=log_level,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             handlers=[
-                logging.FileHandler('/opt/logs/service_manager.log'),
+                logging.FileHandler(os.path.join(log_dir, 'service_manager.log')),
                 logging.StreamHandler(sys.stdout)
             ]
         )

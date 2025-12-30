@@ -1,0 +1,5 @@
+# 服务管理系统依赖
+psycopg2-binary>=2.8.0
+requests>=2.25.0
+psutil>=5.8.0
+schedule>=1.1.0

@@ -109,4 +109,10 @@ echo "Grafana: http://localhost:3000 (用户名: admin, 密码: admin)"
 echo "Doris FE: http://localhost:8030"
 
 echo "=== 启动 Supervisor 进程管理器 ==="
+
+# 启动服务管理脚本
+echo "执行服务启动脚本..."
+/opt/scripts/start_services.sh
+
+# 启动 Supervisor
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf

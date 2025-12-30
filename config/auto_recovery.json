@@ -1,0 +1,40 @@
+{
+  "check_interval": 30,
+  "max_recovery_attempts": 3,
+  "recovery_cooldown": 300,
+  "health_check_timeout": 60,
+  "critical_services_only": false,
+  "auto_restart_enabled": true,
+  "notification_enabled": true,
+  "max_consecutive_failures": 5,
+  "service_priorities": {
+    "postgresql": 1,
+    "sshd": 1,
+    "flink-fluss-cluster": 2,
+    "doris-fe": 3,
+    "doris-be": 3,
+    "grafana": 4,
+    "data-generator": 5,
+    "health-check": 5
+  },
+  "recovery_strategies": {
+    "postgresql": {
+      "pre_recovery_commands": [
+        "pg_ctl status -D /var/lib/postgresql/12/main"
+      ],
+      "post_recovery_commands": [
+        "sleep 10",
+        "python3 /opt/scripts/init_database.py --check-only"
+      ]
+    },
+    "flink-fluss-cluster": {
+      "pre_recovery_commands": [
+        "pkill -f flink || true",
+        "pkill -f fluss || true"
+      ],
+      "post_recovery_commands": [
+        "sleep 30"
+      ]
+    }
+  }
+}
